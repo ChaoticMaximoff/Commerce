@@ -1,0 +1,66 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+
+    <h2>Listing: {{ listing.title }}</h2>
+
+    {% if listing.winner == user %}
+        <h3 style="color:green">CONGRATS! YOU WON THE AUCTION FOR THIS ITEM WEEEEEE!! :3333</h3>
+    {% endif %}
+
+    <img src="{{ listing.image }}" alt="{{ listing.title }}'s image">
+    <p>{{ listing.description }}</p>
+    <h2>${{ listing.price|floatformat:2 }}</h2>
+
+    {% if user.is_authenticated and not is_watchlist %}
+        <form action="{% url 'add_watchlist' listing.id %}" method='POST'>
+            {% csrf_token %}
+            <button type='submit'>Add to Watchlist</button>
+        </form>
+    {% elif user.is_authenticated %}
+        <form action="{% url 'remove_watchlist' listing.id %}" method='POST'>
+            {% csrf_token %}
+            <button type='submit'>Remove form Watchlist</button>
+        </form>
+    {% endif %}
+
+    <br>
+
+    {% if user.is_authenticated %}
+        {% if listing.auction_on  %}
+            <form action="{% url 'bid' listing.id %}" method='POST'>
+                <label for="bid">Bid</label>
+                <br>
+                {% csrf_token %}
+                <input type="number" name="bid" min="{{ min_bid }}" id="bid">
+                <input type="submit" value="Place Bid">
+            </form>
+            <br>
+
+            {% if user == listing.lister %}
+            <form action="{% url 'close_auction' listing.id %}" method="post">
+                {% csrf_token %}
+                <button type="submit">Close Auction</button>
+            </form>
+            {% endif %}
+        {% endif %}
+        <hr>
+        <form action="{% url 'comment' listing.id %}" method="post">
+            {% csrf_token %}
+            <label for="comment">Write a comment:</label><br>
+            <textarea id="comment" name="text" rows="5" cols="50" maxlength="1500" minlength="3"></textarea>
+            <br>
+            <input type="submit" name="submit">
+        </form>
+    {% endif %}
+    <hr>
+        <h3>Comments</h3>
+        {% if comments %}
+            {% for comment in comments %}
+                <h6>{{ comment.user.username }}:</h6>
+                <p>{{ comment.text }}</p><hr>
+            {% endfor %}
+        {% else %}
+            <p>No comments yet.</p>
+        {% endif %}
+{% endblock %}
